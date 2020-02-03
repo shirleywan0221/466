@@ -1,0 +1,385 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run a one-line script
+      run: echo Hello, world!
+    - name: Run a multi-line script
+      run: |
+        echo Add other actions to build,
+        echo test, and deploy your project.
+#####Calculate the YTM
+
+#market from mktp_i indicates the market price for bond i in each
+mktp1 <- c(99.96,99.96,99.96,99.96,99.96,99.96,99.96,99.96,99.96,99.96)
+mktp2 <- c(99.35,99.37,99.37,99.37,99.36,	99.37,	99.38,	99.37,	99.38,	99.39)
+mktp3 <- c(98.9,	98.94,	98.94,	98.94,	98.9,	98.92,	98.9,	98.9,	98.91,	98.92)
+mktp4 <- c(98.52,	98.55,	98.56,	98.57,	98.52,	98.54,	98.51,	98.49,	98.51,	98.52)
+mktp5 <- c(97.55,	97.62,	97.62,	97.63,	97.58,	97.62,	97.59,	97.56,	97.58,	97.6)
+mktp6 <- c(102.55,	102.63,	102.63,	102.64,	102.57,	102.58,	102.56,	102.53,	102.54,	102.58)
+mktp7 <- c(100.31,	100.42,	100.48,	100.45,	100.44,	100.35,	100.31,	100.27,	100.31,	100.38)
+mktp8 <- c(99.52,	99.65,	99.67,	99.68,	99.58,	99.59,	99.53,	99.5,	99.55,	99.64)
+mktp9 <- c(102.45,	102.62,	102.65,	102.68,	102.51,	102.54,	102.47,	102.46,	102.51,	102.62)
+mktp10<- c(99.41,	99.61,	99.66,	99.69	,99.5,	99.54,	99.49,	99.46,	99.54	,99.68)
+#cleanprice matrix: row=trading date, col=bond
+cleanprice <-cbind(mktp1,mktp2,mktp3,mktp4,mktp5,mktp6,mktp7,mktp8,mktp9,mktp10)
+
+#coupon for each bond 
+coupon <- c(1.5,	0.75,	0.75,	0.75,	0.5,	2.75,	1.75,	1.5	,2.25,1.5)
+coupon <-coupon/2
+
+
+#calculate the acrrued interest for each bond
+# n = number of days since last payment.
+acrrued_day1 <- c(124,	124,	124,	124,	124,	33,	124,	33,	124,	124) # forJan.2
+acrrued_day2 <- acrrued_day1+1
+acrrued_day3 <- acrrued_day1+4
+acrrued_day4 <- acrrued_day1+5
+acrrued_day5 <- acrrued_day1+6
+acrrued_day6 <- acrrued_day1+7
+acrrued_day7 <- acrrued_day1+8
+acrrued_day8 <- acrrued_day1+11
+acrrued_day9 <- acrrued_day1+12
+acrrued_day10 <- acrrued_day1+13
+accrued_day <- rbind(acrrued_day1,acrrued_day2,acrrued_day3,acrrued_day4,acrrued_day5,acrrued_day6,
+                     acrrued_day7,acrrued_day8,acrrued_day9,acrrued_day10)
+
+accrued_interest <- matrix (1:100,nrow=10)
+for (row in 1:nrow(accrued_day)){
+  for (i in 1:10){
+    accrued_interest[row,i]= accrued_day[row,i]*coupon[i]*0.01/365
+  }
+}
+
+#calculate the dirty price = accrued interest+clean price
+
+dirtyprice <- accrued_interest +cleanprice
+
+#calculate YTM for each bond 
+
+
+# 2020_03_01
+yield1 <- matrix (1:10, nrow=10)
+for (j in 1:10){ #j=day
+  c <- dirtyprice[j,1]
+  bval <- function(i,c) 100.75*exp(-i*((58-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield1[j][1]<- ytm(c)
+}
+
+#2020_09_01
+yield2 <- matrix (1:10, nrow=10)
+for (j in 1:10){
+  c <- dirtyprice[j,2]
+  bval <- function(i,c) 100.375*exp(-i*((242-j+1)/365))+ 0.375*exp(-i*((58-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield2[j][1]<- ytm(c)
+}
+
+#2021_03_01
+yield3 <- matrix (1:10, nrow=10)
+for (j in 1:10){
+  c <- dirtyprice[j,3]
+  bval <- function(i,c) 100.375*exp(-i*((424-j+1)/365))+ 0.375*exp(-i*((242-j+1)/365))+0.375*exp(-i*((58-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield3[j][1]<- ytm(c)
+}
+
+#2021_09_01
+yield4 <- matrix (1:10, nrow=10)
+for (j in 1:10){
+  c <- dirtyprice[j,4]
+  bval <- function(i,c) 100.375*exp(-i*((607-j+1)/365))+ 0.375*exp(-i*((424-j+1)/365))+0.375*exp(-i*((242-j+1)/365))+0.375*exp(-i*((58-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield4[j][1]<- ytm(c)
+}
+
+#2022_03_01
+yield5 <- matrix (1:10, nrow=10)
+for (j in 1:10){
+  c <- dirtyprice[j,5]
+  bval <- function(i,c) 100.25*exp(-i*((789-j+1)/365))+ 0.25*exp(-i*((607-j+1)/365))+0.25*exp(-i*((424-j+1)/365))+0.25*exp(-i*((242-j+1)/365))+0.25*exp(-i*((58-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield5[j][1]<- ytm(c)
+}
+
+#2022_06_01
+yield6 <- matrix (1:10, nrow=10)
+for (j in 1:10){
+  c <- dirtyprice[j,6]
+  bval <- function(i,c) 101.375*exp(-i*((881-j+1)/365))+ 1.375*exp(-i*((698-j+1)/365))+ 1.375*exp(-i*((515-j+1)/365))+ 1.375*exp(-i*((332-j+1)/365))+ 1.375*exp(-i*((147-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield6[j][1]<- ytm(c)
+}
+
+#2023_03_01
+yield7 <- matrix (1:10, nrow=10)
+for (j in 1:10){
+  c <- dirtyprice[j,7]
+  bval <- function(i,c) 100.875*exp(-i*(((1154-j+1)/365)))+ 0.875*exp(-i*((972-j+1)/365))+ 0.875*exp(-i*((789-j+1)/365))+ 0.875*exp(-i*((607-j+1)/365))+ 0.875*exp(-i*((424-j+1)/365))+0.875*exp(-i*((242-j+1)/365))+0.875*exp(-i*((58-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield7[j][1]<- ytm(c)
+}
+
+#2023_06_01
+yield8 <- matrix (1:10, nrow=10)
+day8 <- matrix (c(1246，1063，881，698，515，332，147),nrow=7)
+for (j in 1:10){
+  c <- dirtyprice[j,8]
+  bval <- function(i,c) 100.75*exp(-i*((day8[1]-j+1)/365))+ 0.75*exp(-i*((day8[2]-j+1)/365))+ 0.75*exp(-i*((day8[3]-j+1)/365))+ 0.75*exp(-i*((day8[4]-j+1)/365))+ 0.75*exp(-i*((day8[5]-j+1)/365))+ 0.75*exp(-i*((day8[6]-j+1)/365))+ 0.75*exp(-i*((day8[7]-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield8[j][1]<- ytm(c)
+}
+
+#2024_03_01
+yield9 <- matrix (1:10, nrow=10)
+day9<- matrix (c(1519,1337,1154,972,789,607,424,242,58),nrow=9)
+for (j in 1:10){
+  c <- dirtyprice[j,9]
+  bval <- function(i,c) 101.125*exp(-i*(((day9[1]-j+1)/365)))+ 1.125*exp(-i*((day9[2]-j+1)/365))+ 1.125*exp(-i*((day9[3]-j+1)/365))+ 1.125*exp(-i*(day9[4]-j+1/365))+ 1.125*exp(-i*((day9[5]-j+1)/365))+1.125*exp(-i*((day9[6]-j+1)/365))+1.125*exp(-i*((day9[7]-j+1)/365))+1.125*exp(-i*(day9[8]-j+1/365))+1.125*exp(-i*(day9[9]-j+1/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield9[j][1]<- ytm(c)
+}
+
+#2024_09_01
+yield10 <- matrix (1:10, nrow=10)
+day10<- matrix (c(1702,1519,1337,1154,972,789,607,424,242,58),nrow=10)
+for (j in 1:10){
+  c <- dirtyprice[j,10]
+  coupon<-1.5
+  bval <- function(i,c) (100.75)*exp(-i*(((day10[1]-j+1)/365)))+ 0.75*exp(-i*((day10[2]-j+1)/365))+ 0.75*exp(-i*((day10[3]-j+1)/365))+ 0.75*exp(-i*((day10[4]-j+1)/365))+ 0.75*exp(-i*((day10[5]-j+1)/365))+0.75*exp(-i*((day10[6]-j+1)/365))+0.75*exp(-i*((day10[7]-j+1)/365))+0.75*exp(-i*((day10[8]-j+1)/365))+0.75*exp(-i*((day10[9]-j+1)/365))+0.75*exp(-i*((day10[10]-j+1)/365))-c
+  ytm <- function (i) {uniroot(bval,lower=0, upper=1,c=c)}$root
+  yield10[j][1]<- ytm(c)
+}
+
+# YTM for selected 10 bonds for Jan.2 to Jan.15 
+# each colomn represents one bond, earliest maturity to latest maturity from left to right
+# each row represents a particular trading day
+yield_matrix <- cbind (yield1,yield2,yield3,yield4,yield5,yield6,yield7,yield8,yield9,yield10)
+yield_matrix
+
+d <- c(58,242,424,607,789,881,1154,1246,1519,1702)
+ytm_givendate <- c()
+dd <- c()
+color <- c("purple","plum","palegreen","slateblue","skyblue", "tomato","turquoise","wheat2","tan","sienna")
+#TYM curve
+for (row in 1:nrow(yield_matrix)){
+  if (row==1){
+    for (j in 1:10){
+      ytm_givendate[j]<- round(yield_matrix[row,j],5)
+      dd[j] <- round((d[j]-row+1)/365,5)
+    }
+    plot(dd,ytm_givendate,type = "l",col=color[row],xlab="Time To Maturity(year)", ylab="Yield To Maturity",
+         main="YTM from Jan.2 to Jan.15")
+  }
+  else{
+    for (j in 1:10){
+      ytm_givendate[j]<- round(yield_matrix[row,j],5)
+      dd[j] <- round((d[j]-row+1)/365,5)
+    }
+    lines(dd,ytm_givendate,type = "l",col=color[row])}
+}
+legend(3.6,0.05,c("Jan.2","Jan.3","Jan.6","Jan.7","Jan.8","Jan.9","Jan.10","Jan.13","Jan.14","Jan.15"), 
+       lwd=c(2,2), col=color,cex=0.55)
+
+##### Calculate the spot curve
+
+#each trading day
+for (row in 1:10){
+  # spot rate1
+  c <- dirtyprice[row,1]
+  bval1 <- function(i,c) 100.75*exp(-i*((58-row+1)/365))-c
+  s1 <- function (i) {uniroot(bval1,lower=0, upper=1,c=c)}$root #3-months spot rate
+  spotrate[row,1] <- s1(c)
+
+  #spot rate 2
+  c<-dirtyprice[row,2]
+  bval2 <- function(i,c) 100.375*exp(-i*(242-row+1)/365)+0.375*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s2<- function (i) {uniroot(bval2,lower=0, upper=1,c=c)}$root #9-months spot rate
+  spotrate[row,2] <- s2(c)
+  
+  # spot rate3
+  c <- dirtyprice[row,3]
+  bval3 <- function(i,c) 100.375*exp(-i*((424-row+1)/365))+0.375*exp(-spotrate[row,2]*(242-row+1)/365)+0.375*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s3 <- function (i) {uniroot(bval3,lower=0, upper=1,c=c)}$root #15-months spot rate
+  spotrate[row,3] <- s3(c)
+  
+  # spot rate4
+  c <- dirtyprice[row,4]
+  bval4 <- function(i,c) 100.375*exp(-i*((607-row+1)/365))+0.375*exp(-spotrate[row,3]*(424-row+1)/365)+0.375*exp(-spotrate[row,2]*(242-row+1)/365)+0.375*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s4 <- function (i) {uniroot(bval4,lower=0, upper=1,c=c)}$root #21-months spot rate
+  spotrate[row,4] <- s4(c)
+  
+  # spot rate5
+  c <- dirtyprice[row,5]
+  bval5 <- function(i,c) 100.25*exp(-i*((789-row+1)/365))+0.25*exp(-spotrate[row,4]*(607-row+1)/365)+0.25*exp(-spotrate[row,3]*(424-row+1)/365)+0.25*exp(-spotrate[row,2]*(242-row+1)/365)+0.25*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s5 <- function (i) {uniroot(bval5,lower=0, upper=1,c=c)}$root #27-months spot rate
+  spotrate[row,5] <- s5(c)
+  
+  # spot rate6
+  c <- dirtyprice[row,6]
+  bval6 <- function(i,c) 101.375*exp(-i*((972-row+1)/365))+1.375*exp(-spotrate[row,5]*(789-row+1)/365)+1.375*exp(-spotrate[row,4]*(607-row+1)/365)+1.375*exp(-spotrate[row,3]*(424-row+1)/365)+1.375*exp(-spotrate[row,2]*(242-row+1)/365)+1.375*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s6 <- function (i) {uniroot(bval6,lower=0, upper=1,c=c)}$root #33-months spot rate
+  spotrate[row,6] <- s6(c)
+  
+   # spot rate7
+  c <- dirtyprice[row,7]
+  bval7 <- function(i,c) 100.875*exp(-i*((1154-row+1)/365))+0.875*exp(-spotrate[row,6]*(972-row+1)/365)+0.875*exp(-spotrate[row,5]*(789-row+1)/365)+0.875*exp(-spotrate[row,4]*(607-row+1)/365)+0.875*exp(-spotrate[row,3]*(424-row+1)/365)+0.875*exp(-spotrate[row,2]*(242-row+1)/365)+0.875*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s7 <- function (i) {uniroot(bval7,lower=0, upper=1,c=c)}$root #39-months spot rate
+  spotrate[row,7] <- s7(c)
+  
+  # spot rate8
+  c <- dirtyprice[row,8]
+  bval8 <- function(i,c) 100.75*exp(-i*((1337-row+1)/365))+0.75*exp(-spotrate[row,7]*(1154-row+1)/365)+0.75*exp(-spotrate[row,6]*(972-row+1)/365)+0.75*exp(-spotrate[row,5]*(789-row+1)/365)+0.75*exp(-spotrate[row,4]*(607-row+1)/365)+0.75*exp(-spotrate[row,3]*(424-row+1)/365)+0.75*exp(-spotrate[row,2]*(242-row+1)/365)+0.75*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s8 <- function (i) {uniroot(bval8,lower=0, upper=1,c=c)}$root #45-months spot rate
+  spotrate[row,8] <- s8(c)
+  
+  # spot rate9
+  c <- dirtyprice[row,9]
+  bval9 <- function(i,c) 101.125*exp(-i*((1519-row+1)/365))+1.125*exp(- spotrate[row,8]*((1337-row+1)/365))+1.125*exp(-spotrate[row,7]*(1154-row+1)/365)+1.125*exp(-spotrate[row,6]*(972-row+1)/365)+1.125*exp(-spotrate[row,5]*(789-row+1)/365)+1.125*exp(-spotrate[row,4]*(607-row+1)/365)+1.125*exp(-spotrate[row,3]*(424-row+1)/365)+1.125*exp(-spotrate[row,2]*(242-row+1)/365)+1.125*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s9 <- function (i) {uniroot(bval9,lower=0, upper=1,c=c)}$root #45-months spot rate
+  spotrate[row,9] <- s9(c)
+  
+  # spot rate10
+  c <- dirtyprice[row,10]
+  bval10 <- function(i,c) 100.75*exp(-i*((1702-row+1)/365))+0.75*exp(-spotrate[row,9]*((1519-row+1)/365))+0.75*exp(- spotrate[row,8]*((1337-row+1)/365))+0.75*exp(-spotrate[row,7]*(1154-row+1)/365)+0.75*exp(-spotrate[row,6]*(972-row+1)/365)+0.75*exp(-spotrate[row,5]*(789-row+1)/365)+0.75*exp(-spotrate[row,4]*(607-row+1)/365)+0.75*exp(-spotrate[row,3]*(424-row+1)/365)+0.75*exp(-spotrate[row,2]*(242-row+1)/365)+0.75*exp(-spotrate[row,1]*(58-row+1)/365)-c
+  s10 <- function (i) {uniroot(bval10,lower=0, upper=1,c=c)}$root #51-months spot rate
+  spotrate[row,10] <- s10(c)
+}
+  spotrate
+  
+  #plot the curve
+    d <- c(58,242,424,607,789,972,1154,1337,1519,1702)
+    spt_givendate <- c()
+    dd <- c()
+    color <- c("purple","plum","palegreen","slateblue","skyblue", "tomato","turquoise","wheat2","tan","sienna")
+   for (row in 1:nrow(spotrate)){
+     
+    if (row==1){
+        for (j in 1:10){
+          spt_givendate[j]<- round(spotrate[row,j],5)
+          dd[j] <- round((d[j]-row+1)/365,5)
+        }
+        plot(dd,spt_givendate,type = "l",col=color[row],xlab="Year", ylab="Spot Rate",
+             main="Spot Rate from Jan.2 to Jan.15")
+      }
+    else{
+        for (j in 1:10){
+          spt_givendate[j]<- round(spotrate[row,j],5)
+          dd[j] <- round((d[j]-row+1)/365,5)
+        }
+        lines(dd,spt_givendate,type = "l",col=color[row])}
+    }
+    legend(3.6,0.05,c("Jan.2","Jan.3","Jan.6","Jan.7","Jan.8","Jan.9","Jan.10","Jan.13","Jan.14","Jan.15"), lwd=c(2,2), col=color,cex=0.55)
+ 
+### Calculate the forward rate
+
+    forward_matrix <- matrix (1:70, nrow=10)
+    for (row in 1:10){
+      #fij means the forward rate from time i to time j
+      f12 <- (spotrate[row,4]*(607/365)-spotrate[row,2]*(242/365))/((607/365)-(242/365))
+      f125 <- (spotrate[row,5]*(789/365)-spotrate[row,2]*(242/365))/((789/365)-(242/365))
+      f13 <- (spotrate[row,6]*(881/365)-spotrate[row,2]*(242/365))/((881/365)-(242/365))
+      f135 <- (spotrate[row,7]*(1154/365)-spotrate[row,2]*(242/365))/((1154/365)-(242/365))
+      f15 <- (spotrate[row,8]*(1246/365)-spotrate[row,2]*(242/365))/((1246/365)-(242/365))
+      f16 <- (spotrate[row,6]*(1519/365)-spotrate[row,2]*(242/365))/((1519/365)-(242/365))
+      f19 <- (spotrate[row,10]*(1702/365)-spotrate[row,2]*(242/365))/((1702/365)-(242/365))
+      
+      forward_matrix[row,1]<-f12
+      forward_matrix[row,2]<- f125
+      forward_matrix[row,3]<- f13
+      forward_matrix[row,4]<-f135
+      forward_matrix[row,5]<-f15
+      forward_matrix[row,6]<-f16
+      forward_matrix[row,7]<-f19
+    
+    }
+    forward_matrix
+    
+    #plot the forward curve
+    d <- c(1,1.5,2,2.5,3,3.5,4)
+    fwd_givendate <- c()
+    dd <- c()
+    color <- c("purple","plum","palegreen","slateblue","skyblue", "tomato","turquoise","wheat2","tan","sienna")
+    for (row in 1:nrow(forward_matrix)){
+      
+      if (row==1){
+        for (j in 1:7){
+          fwd_givendate[j]<- round(forward_matrix[row,j],5)
+          dd[j] <- d[j]
+        }
+        plot(dd,fwd_givendate,type = "l",col=color[row],xlab="# of Years from 1-year Time", ylab="1-yr Forward Rate",
+             main="Forward Rate from Jan.2 to Jan.15")
+      }
+      else{
+        for (j in 1:7){
+          fwd_givendate[j]<- round(forward_matrix[row,j],5)
+          dd[j] <- d[j]
+        }
+        lines(dd,fwd_givendate,type = "l",col=color[row])}
+    }
+    legend(1,0.021,c("Jan.2","Jan.3","Jan.6","Jan.7","Jan.8","Jan.9","Jan.10","Jan.13","Jan.14","Jan.15"), lwd=c(2,2), col=color,cex=0.55)
+  
+    
+  #### Calculate the covariance matrix 
+    # xij means the daily return for the ith bond and jth date. 
+    X <- matrix(1:45, nrow=9)
+  for (row in 1:9){
+    X[row,1] =log(yield_matrix[(row+1),1]/yield_matrix[row,1]) 
+    X[row,2] =log(yield_matrix[(row+1),3]/yield_matrix[row,3]) 
+    X[row,3] =log(yield_matrix[(row+1),5]/yield_matrix[row,5]) 
+    X[row,4] =log(yield_matrix[(row+1),7]/yield_matrix[row,7]) 
+    X[row,5] =log(yield_matrix[(row+1),9]/yield_matrix[row,9]) 
+  }
+    X
+    cov(X)
+  
+    
+  ### calculate the covariance matrix 
+    X <- matrix(1:45, nrow=9)
+    for (row in 1:9){
+      X[row,1] =log(forward_matrix[(row+1),1]/forward_matrix[row,1]) 
+      X[row,2] =log(forward_matrix[(row+1),3]/forward_matrix[row,3]) 
+      X[row,3] =log(forward_matrix[(row+1),5]/forward_matrix[row,5]) 
+      X[row,4] =log(forward_matrix[(row+1),7]/forward_matrix[row,7]) 
+    }
+    X
+    cov(X)
+  
+    ##### Calculate the eigenvalues and eigenvectors 
+  
+    # for the yield
+    X <- matrix(1:45, nrow=9)
+    for (row in 1:9){
+      X[row,1] =log(yield_matrix[(row+1),1]/yield_matrix[row,1]) 
+      X[row,2] =log(yield_matrix[(row+1),3]/yield_matrix[row,3]) 
+      X[row,3] =log(yield_matrix[(row+1),5]/yield_matrix[row,5]) 
+      X[row,4] =log(yield_matrix[(row+1),7]/yield_matrix[row,7]) 
+      X[row,5] =log(yield_matrix[(row+1),9]/yield_matrix[row,9]) 
+    }
+    X
+    cov(X)
+    CY <-cov(X) 
+    e_cy <- eigen(CY)
+    e_cy    
+    
+    # for the forward rate
+    X <- matrix(1:45, nrow=9)
+    for (row in 1:9){
+      X[row,1] =log(forward_matrix[(row+1),1]/forward_matrix[row,1]) 
+      X[row,2] =log(forward_matrix[(row+1),3]/forward_matrix[row,3]) 
+      X[row,3] =log(forward_matrix[(row+1),5]/forward_matrix[row,5]) 
+      X[row,4] =log(forward_matrix[(row+1),7]/forward_matrix[row,7]) 
+    }
+    X
+    cov(X)
+    CF <- cov(X)
+    e_cf <- eigen(CF)
+    e_cf
